@@ -95,9 +95,6 @@ def get_perspect_transform_matrix(Rover, src, dst):
 def perception_step(Rover):
     # Perform perception steps to update Rover()
     # NOTE: camera image is coming to you in Rover.img
-    # 0) Only takes roll & pitch <=5 degrees pictures as a valid perception
-    if (Rover.roll > 5) or (Rover.pitch > 5):
-        return Rover
     # 1) Define source and destination points for perspective transform
     dst_size = 5
     bottom_offset = 6
