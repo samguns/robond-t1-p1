@@ -40,6 +40,9 @@ class RoverState():
     def __init__(self):
         self.start_time = None # To record the start time of navigation
         self.total_time = None # To record total duration of naviagation
+        self.stuck_check_count = 0
+        self.stuck_threshold = 10
+        self.angle_offset = 14.5
         self.img = None # Current camera image
         self.pos = None # Current position (x, y)
         self.yaw = None # Current yaw angle
@@ -53,8 +56,9 @@ class RoverState():
         self.nav_dists = None # Distances of navigable terrain pixels
         self.ground_truth = ground_truth_3d # Ground truth worldmap
         self.mode = 'forward' # Current mode (can be forward or stop)
-        self.throttle_set = 0.5 # Throttle setting when accelerating
+        self.throttle_set = 0.6 # Throttle setting when accelerating
         self.brake_set = 10 # Brake setting when braking
+        self.approching_sample_brake_set = 3
         # The stop_forward and go_forward fields below represent total count
         # of navigable terrain pixels.  This is a very crude form of knowing
         # when you can keep going and when you should stop.  Feel free to
@@ -62,6 +66,10 @@ class RoverState():
         self.stop_forward = 50 # Threshold to initiate stopping
         self.go_forward = 500 # Threshold to go forward again
         self.max_vel = 2 # Maximum velocity (meters/second)
+        self.max_approaching_sample_vel = 1
+        self.sample_throttle_set = 0.4
+        self.sample_brake_set = 5
+        self.stuck_velocity = 0.4
         # Image output from perception step
         # Update this image to display your intermediate analysis steps
         # on screen in autonomous mode
@@ -79,6 +87,8 @@ class RoverState():
         self.picking_up = 0 # Will be set to telemetry value data["picking_up"]
         self.send_pickup = False # Set to True to trigger rock pickup
         self.M = None # Perspective transform matrix
+        self.rock_angle = 0
+        self.rock_dist = 0
 # Initialize our rover 
 Rover = RoverState()
 
@@ -101,7 +111,7 @@ def telemetry(sid, data):
         fps = frame_counter
         frame_counter = 0
         second_counter = time.time()
-    print("Current FPS: {}".format(fps))
+    #print("Current FPS: {}".format(fps))
 
     if data:
         global Rover

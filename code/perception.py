@@ -122,7 +122,8 @@ def perception_step(Rover):
     # 3) Apply color threshold to identify navigable terrain/obstacles/rock samples
     color_threshed = color_thresh(warped)
 
-    height = 50
+    # Just take what perceived in 4 meters ahead into account
+    height = 40
     top = int(Rover.img.shape[0] - height - bottom_offset)
     threshed = roi_thresh(color_threshed, top, height)
 
@@ -166,12 +167,15 @@ def perception_step(Rover):
         rock_idx = np.argmax(rock_dist)
         rock_xcen = rock_x_world[rock_idx]
         rock_ycen = rock_y_world[rock_idx]
+        Rover.rock_angle = np.mean(rock_angles * 180 / np.pi)
         Rover.worldmap[rock_ycen, rock_xcen, 1] = 255
+    else:
+        Rover.rock_angle = 0
+        Rover.rock_dist = 0
 
     # 8) Convert rover-centric pixel positions to polar coordinates
     # Update Rover pixel distances and angles
         # Rover.nav_dists = rover_centric_pixel_distances
         # Rover.nav_angles = rover_centric_angles
     Rover.nav_dists, Rover.nav_angles = to_polar_coords(xpix, ypix)
-    
     return Rover

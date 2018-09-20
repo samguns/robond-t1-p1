@@ -103,10 +103,12 @@ def create_output_images(Rover):
                   # If rocks were detected within 3 meters of known sample positions
                   # consider it a success and plot the location of the known
                   # sample on the map
-                  if np.min(rock_sample_dists) < 3:
+                  min_sample_dist = np.min(rock_sample_dists)
+                  if min_sample_dist < 3:
                         samples_located += 1
                         map_add[test_rock_y-rock_size:test_rock_y+rock_size, 
                         test_rock_x-rock_size:test_rock_x+rock_size, :] = 255
+                        Rover.rock_dist = min_sample_dist
 
       # Calculate some statistics on the map results
       # First get the total number of pixels in the navigable terrain map
@@ -130,7 +132,8 @@ def create_output_images(Rover):
 
       anchor_angle = np.mean(Rover.nav_angles * 180 / np.pi)
       print('mean_angle: ', anchor_angle, ' steer: ', Rover.steer, ' mapped: ', perc_mapped,
-            ' fidelity: ', fidelity)
+            ' fidelity: ', fidelity, ' velocity: ', Rover.vel, ' stuck cnt: ', Rover.stuck_check_count,
+            ' mode: ', Rover.mode, ' yaw: ', Rover.yaw, ' rock angle: ', Rover.rock_angle)
       # Add some text about map and rock sample detection results
       cv2.putText(map_add,"Time: "+str(np.round(Rover.total_time, 1))+' s', (0, 10), 
                   cv2.FONT_HERSHEY_COMPLEX, 0.4, (255, 255, 255), 1)
