@@ -1,6 +1,15 @@
 import numpy as np
 import time
 
+def process_init_mode(Rover):
+    running_time = time.time() - Rover.start_time
+    # Don't steering the wheel in the first 3 seconds
+    # to prevent looping around obstacles scatter around
+    # the starting point.
+    if running_time > 3:
+        Rover.mode = 'forward'
+
+    return
 
 def process_forward_mode(Rover):
     nav_extent = len(Rover.nav_angles)
@@ -75,6 +84,13 @@ def process_stuck_mode(Rover):
     return
 
 
+def rover_init(Rover):
+    Rover.throttle = Rover.throttle_set
+    Rover.brake = 0
+    Rover.steer = 0
+    return
+
+
 def rover_forward(Rover):
     if Rover.vel < Rover.max_vel:
         Rover.throttle = Rover.throttle_set
@@ -84,12 +100,8 @@ def rover_forward(Rover):
     Rover.brake = 0
 
     if len(Rover.nav_angles) > 0:
-        running_time = time.time() - Rover.start_time
-        if running_time > 3:
-            anchor_angle = np.mean(Rover.nav_angles * 180 / np.pi)
-            Rover.steer = anchor_angle + Rover.angle_offset
-        else:
-            Rover.steer = 0
+        anchor_angle = np.mean(Rover.nav_angles * 180 / np.pi)
+        Rover.steer = anchor_angle + Rover.angle_offset
     else:
         Rover.steer = 0
     return
@@ -125,7 +137,10 @@ def rover_stop(Rover):
 def rover_stuck(Rover):
     # There's an obstacle prevent Rover moving forward
     Rover.throttle = 0
-    Rover.brake = 0
+    if Rover.vel > 0.2:
+        Rover.brake = Rover.brake_set
+    else:
+        Rover.brake = 0
     # Because the Rover is a kind of left wall-crawler, the simplest
     # strategy here is just stop and turn 15 degree to the right
     Rover.steer = -15
@@ -144,7 +159,10 @@ def decision_step(Rover):
     # Check if we have vision data to make decisions with
     if Rover.nav_angles is not None:
         # State transition
-        if Rover.mode == 'forward':
+        if Rover.mode == 'init':
+            process_init_mode(Rover)
+            rover_init(Rover)
+        elif Rover.mode == 'forward':
             process_forward_mode(Rover)
             rover_forward(Rover)
         elif Rover.mode == 'stop':

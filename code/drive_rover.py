@@ -55,7 +55,7 @@ class RoverState():
         self.nav_angles = None # Angles of navigable terrain pixels
         self.nav_dists = None # Distances of navigable terrain pixels
         self.ground_truth = ground_truth_3d # Ground truth worldmap
-        self.mode = 'forward' # Current mode (can be forward or stop)
+        self.mode = 'init' # Current mode (can be forward or stop)
         self.throttle_set = 0.6 # Throttle setting when accelerating
         self.brake_set = 10 # Brake setting when braking
         self.approching_sample_brake_set = 3
