@@ -169,6 +169,7 @@ def perception_step(Rover):
         rock_ycen = rock_y_world[rock_idx]
         Rover.rock_angle = np.mean(rock_angles * 180 / np.pi)
         Rover.worldmap[rock_ycen, rock_xcen, 1] = 255
+        Rover.rock_dist = np.sqrt((Rover.pos[0] - rock_xcen)**2 + (Rover.pos[1] - rock_ycen)**2)
     else:
         Rover.rock_angle = 0
         Rover.rock_dist = 0

@@ -17,7 +17,7 @@ def process_forward_mode(Rover):
         Rover.mode = 'stop'
         return
 
-    if Rover.rock_angle > 0 and Rover.rock_dist <= 1:
+    if 0 < Rover.rock_angle < 90:
         Rover.mode = 'sample'
         return
 
@@ -85,7 +85,7 @@ def process_stuck_mode(Rover):
 
 
 def rover_init(Rover):
-    Rover.throttle = Rover.throttle_set
+    Rover.throttle = Rover.sample_throttle_set
     Rover.brake = 0
     Rover.steer = 0
     return
@@ -110,20 +110,17 @@ def rover_forward(Rover):
 def rover_sample(Rover):
     # If we detected a rock ahead of rover's left side,
     # steers it towards the rock sample.
-    if Rover.rock_angle > 15:
-        Rover.throttle = 0
-        Rover.brake = 0
-        Rover.steer = 15
-        return
-
     if Rover.vel < Rover.max_approaching_sample_vel:
         Rover.throttle = Rover.sample_throttle_set
         Rover.brake = 0
     else:
         Rover.throttle = 0
-        Rover.brake = Rover.sample_brake_set
+        Rover.brake = Rover.approching_sample_brake_set
 
-    Rover.steer = Rover.rock_angle
+    if Rover.rock_angle > 15:
+        Rover.steer = 15
+    else:
+        Rover.steer = Rover.rock_angle
     return
 
 
@@ -137,10 +134,7 @@ def rover_stop(Rover):
 def rover_stuck(Rover):
     # There's an obstacle prevent Rover moving forward
     Rover.throttle = 0
-    if Rover.vel > 0.2:
-        Rover.brake = Rover.brake_set
-    else:
-        Rover.brake = 0
+    Rover.brake = 0
     # Because the Rover is a kind of left wall-crawler, the simplest
     # strategy here is just stop and turn 15 degree to the right
     Rover.steer = -15
@@ -161,19 +155,30 @@ def decision_step(Rover):
         # State transition
         if Rover.mode == 'init':
             process_init_mode(Rover)
-            rover_init(Rover)
         elif Rover.mode == 'forward':
             process_forward_mode(Rover)
-            rover_forward(Rover)
         elif Rover.mode == 'stop':
             process_stop_mode(Rover)
-            rover_stop(Rover)
         elif Rover.mode == 'stuck':
             process_stuck_mode(Rover)
-            rover_stuck(Rover)
         elif Rover.mode == 'sample':
             process_sample_mode(Rover)
+        else:
+            pass
+
+        # New state action
+        if Rover.mode == 'init':
+            rover_init(Rover)
+        elif Rover.mode == 'forward':
+            rover_forward(Rover)
+        elif Rover.mode == 'stop':
+            rover_stop(Rover)
+        elif Rover.mode == 'stuck':
+            rover_stuck(Rover)
+        elif Rover.mode == 'sample':
             rover_sample(Rover)
+        else:
+            pass
 
     # Just to make the rover do something 
     # even if no modifications have been made to the code
